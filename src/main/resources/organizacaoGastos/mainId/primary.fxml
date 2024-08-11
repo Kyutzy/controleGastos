@@ -4,14 +4,13 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.Spinner?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -27,19 +26,12 @@
                      <children>
                         <TextField fx:id="nomeGasto" layoutX="38.0" layoutY="35.0" prefHeight="25.0" prefWidth="300.0" />
                         <TextField fx:id="valorGasto" layoutX="38.0" layoutY="84.0" prefHeight="25.0" prefWidth="300.0" />
-                        <RadioButton fx:id="radioParcelaSim" layoutX="35.0" layoutY="143.0" mnemonicParsing="false" onAction="#handleParcelado" text="Sim">
-                           <toggleGroup>
-                              <ToggleGroup fx:id="Parcelas" />
-                           </toggleGroup>
-                        </RadioButton>
-                        <RadioButton fx:id="radioParcelaNao" layoutX="90.0" layoutY="143.0" mnemonicParsing="false" onAction="#handleParcelado" selected="true" text="Não" toggleGroup="$Parcelas" />
-                        <Spinner fx:id="spinnerParcelas" disable="true" editable="true" layoutX="176.0" layoutY="139.0" max="12" min="1" prefHeight="25.0" prefWidth="161.0" />
+                        <Spinner fx:id="spinnerParcelas" editable="true" layoutX="38.0" layoutY="141.0" max="12" min="1" prefHeight="25.0" prefWidth="300.0" />
                         <ComboBox fx:id="categoriaGasto" layoutX="37.0" layoutY="200.0" prefHeight="25.0" prefWidth="273.0" />
                         <DatePicker fx:id="dataGasto" layoutX="39.0" layoutY="246.0" prefHeight="25.0" prefWidth="300.0" />
                         <Button fx:id="lancarGasto" layoutX="39.0" layoutY="286.0" mnemonicParsing="false" onAction="#criarDepesaUmaVez" prefHeight="30.0" prefWidth="300.0" text="Lançar gasto" />
                         <Label layoutX="37.0" layoutY="67.0" prefHeight="17.0" prefWidth="253.0" text="Valor" />
-                        <Label layoutX="38.0" layoutY="119.0" text="Parcelado" />
-                        <Label layoutX="176.0" layoutY="119.0" text="Quantas vezes?" />
+                        <Label layoutX="42.0" layoutY="124.0" text="Quantas vezes?" />
                         <Label layoutX="37.0" layoutY="182.0" prefHeight="17.0" prefWidth="83.0" text="Categoria" />
                         <ImageView fitHeight="186.0" fitWidth="189.0" layoutX="94.0" layoutY="368.0" pickOnBounds="true" preserveRatio="true">
                            <image>
@@ -50,6 +42,7 @@
                         <Button fx:id="lancarGasto1" layoutX="38.0" layoutY="326.0" mnemonicParsing="false" onAction="#criarDespesaRecorrente" prefHeight="30.0" prefWidth="300.0" text="Lançar recorrencia" />
                         <Label layoutX="37.0" layoutY="18.0" prefHeight="17.0" prefWidth="102.0" text="Nome" />
                         <Label layoutX="40.0" layoutY="229.0" text="Data" />
+                        <ProgressBar fx:id="progresso" layoutX="36.0" layoutY="561.0" prefHeight="18.0" prefWidth="291.0" />
                      </children>
                   </AnchorPane>
             </content>
@@ -58,35 +51,28 @@
             <content>
               <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="373.0">
                      <children>
-                        <Spinner editable="true" layoutX="38.0" layoutY="28.0" prefHeight="25.0" prefWidth="82.0" />
-                        <Label layoutX="38.0" layoutY="12.0" text="Mês" />
-                        <Spinner editable="true" layoutX="152.0" layoutY="28.0" prefHeight="25.0" prefWidth="82.0" />
-                        <Label layoutX="152.0" layoutY="12.0" text="Ano" />
-                        <ComboBox layoutX="38.0" layoutY="78.0" prefHeight="25.0" prefWidth="300.0" />
-                        <Label layoutX="39.0" layoutY="61.0" text="Separar por categoria" />
-                        <Label layoutX="37.0" layoutY="110.0" text="Resumo do mês por categoria" />
-                        <Label layoutX="38.0" layoutY="339.0" text="Gastos totais" />
-                        <ImageView fitHeight="45.0" fitWidth="79.0" layoutX="261.0" layoutY="18.0" pickOnBounds="true" preserveRatio="true">
+                        <Label layoutX="22.0" layoutY="110.0" text="Resumo do mês por categoria" />
+                        <Label layoutX="22.0" layoutY="339.0" text="Gastos totais" />
+                        <ImageView fitHeight="95.0" fitWidth="112.0" layoutX="131.0" layoutY="14.0" pickOnBounds="true" preserveRatio="true">
                            <image>
                               <Image url="@c277b80998305d460a8b5b2f692d446b.jpg" />
                            </image>
                         </ImageView>
-                        <TableView fx:id="visualizacaoPorCategoria" layoutX="37.0" layoutY="127.0" prefHeight="200.0" prefWidth="300.0">
+                        <TableView fx:id="visualizacaoPorCategoria" layoutX="22.0" layoutY="127.0" prefHeight="200.0" prefWidth="330.0">
                           <columns>
-                            <TableColumn fx:id="visualizacaoPorCategoriaCategoria" prefWidth="149.0" text="Categoria" />
-                            <TableColumn fx:id="visualizacaoPorCategoriaValor" prefWidth="149.0" text="Valor Gasto" />
+                            <TableColumn fx:id="visualizacaoPorCategoriaCategoria" prefWidth="164.0" text="Categoria" />
+                            <TableColumn fx:id="visualizacaoPorCategoriaValor" prefWidth="164.0" text="Valor Gasto" />
                           </columns>
                         </TableView>
-                        <TableView layoutX="39.0" layoutY="356.0" prefHeight="200.0" prefWidth="296.0">
+                        <TableView fx:id="visualizacaoGeral" layoutX="22.0" layoutY="356.0" maxHeight="200.0" maxWidth="330.0" prefHeight="200.0" prefWidth="330.0">
                           <columns>
-                            <TableColumn prefWidth="75.0" text="Nome" />
-                            <TableColumn prefWidth="75.0" text="Valor" />
-                              <TableColumn prefWidth="75.0" text="Data" />
-                              <TableColumn prefWidth="75.0" text="Categoria" />
+                            <TableColumn fx:id="visualizacaoNome" prefWidth="81.5" resizable="false" text="Nome" />
+                            <TableColumn fx:id="visualizacaoValor" prefWidth="81.5" resizable="false" text="Valor" />
+                              <TableColumn fx:id="visualizacaoData" prefWidth="81.5" resizable="false" text="Data" />
+                              <TableColumn fx:id="visualizacaoCategoria" prefWidth="81.5" resizable="false" text="Categ" />
                           </columns>
                         </TableView>
-                        <TextField layoutX="40.0" layoutY="556.0" prefHeight="25.0" prefWidth="266.0" />
-                        <Button layoutX="306.0" layoutY="556.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="30.0" text="🔍" />
+                        <TextField fx:id="total" editable="false" layoutX="22.0" layoutY="558.0" prefHeight="25.0" prefWidth="330.0" />
                      </children>
                   </AnchorPane>
             </content>

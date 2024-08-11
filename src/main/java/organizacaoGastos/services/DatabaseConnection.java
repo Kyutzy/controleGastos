@@ -7,7 +7,9 @@ import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistry;
@@ -25,6 +27,7 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Projections;
 
 import organizacaoGastos.objects.Despesa;
+import organizacaoGastos.objects.GastoGeral;
 import organizacaoGastos.objects.GastoVisualizacao;
 import organizacaoGastos.models.DBFunctions;
 
@@ -65,7 +68,9 @@ public class DatabaseConnection {
 				.append("Categoria", despesa.getCategoria())
 				.append("Parcelado", despesa.isParcelado())
 				.append("Recorrente", despesa.isRecorrente())
-				.append("Data", despesa.getData());
+				.append("Data", despesa.getData())
+				.append("Mes", despesa.getMes())
+				.append("Ano", despesa.getAno());
 		
 	}
 	
@@ -96,12 +101,45 @@ public class DatabaseConnection {
 	
 	public ArrayList<GastoVisualizacao> getGastosByCategoria(){
 		MongoCollection<Document> collection;
+		ArrayList<GastoVisualizacao> listFinal = new ArrayList<>();
 		collection = this.database.getCollection("Gastos");
-		ArrayList<GastoVisualizacao> gastosGerais = new DBFunctions().aggregatePorCategoria(collection);
-		collection = this.database.getCollection("");
-		return new ArrayList<>();
+		HashMap<String, Float> gastosGerais = new DBFunctions().aggregatePorCategoriaEMes(collection);
+		collection = this.database.getCollection("Recorrente");
+		HashMap<String, Float> gastosRecorrentes = new DBFunctions().aggregatePorCategoria(collection);
 		
+		for(Map.Entry<String, Float> entry: gastosGerais.entrySet()){
+			if (gastosRecorrentes.containsKey(entry.getKey())){
+				listFinal.add(new GastoVisualizacao(
+						entry.getKey(), entry.getValue() + gastosRecorrentes.get(entry.getKey())
+						));
+			} else {
+				listFinal.add(new GastoVisualizacao(
+						entry.getKey(), entry.getValue()
+						));
+			}
+			
+		}
 		
+		return listFinal;
+	}
+	
+	public ArrayList<GastoGeral> getAllGastos(){
+		collection = this.database.getCollection("Gastos");
+		ArrayList<GastoGeral> todosGastos = new DBFunctions().getDocumentsByMonth(collection);
+		collection = this.database.getCollection("Recorrente");
+		ArrayList<GastoGeral> recorrentes = new DBFunctions().getDocumentsByMonth(collection);
+		todosGastos.addAll(recorrentes);
+		
+		return todosGastos;
+	}
+	
+	public float getValorGastos() {
+		collection = this.database.getCollection("Gastos");
+		float allGastosNoRecorrence = new DBFunctions().getSumOfValuesByMonth(collection);
+		collection = this.database.getCollection("Recorrente");
+		new DBFunctions().getSumOfValuesByMonth(collection);
+		float allGastosForReal = allGastosNoRecorrence + new DBFunctions().getSumOfValuesByMonth(collection);
+		return allGastosForReal;
 	}
 	
 	

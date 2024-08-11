@@ -10,6 +10,8 @@ public class Despesa {
 	String categoria;
 	boolean recorrente;
 	String data;
+	String mes;
+	int ano;
 	
 	public float getValor() {
 		return valor;
@@ -48,7 +50,20 @@ public class Despesa {
 		this.data = data;
 	}
 	
-	public Despesa(String nome, float valor, boolean parcelado, String categoria, boolean recorrente, String data) {
+	public String getMes() {
+		return mes;
+	}
+	public void setMes(String mes) {
+		this.mes = mes;
+	}
+	public int getAno() {
+		return ano;
+	}
+	public void setAno(int ano) {
+		this.ano = ano;
+	}
+	public Despesa(String nome, float valor, boolean parcelado, String categoria, boolean recorrente, String data,
+			String mes, int ano) {
 		super();
 		this.nome = nome;
 		this.valor = valor;
@@ -56,7 +71,10 @@ public class Despesa {
 		this.categoria = categoria;
 		this.recorrente = recorrente;
 		this.data = data;
+		this.mes = mes;
+		this.ano = ano;
 	}
+
 	
 
 
