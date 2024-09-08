@@ -1,6 +1,8 @@
 package organizacaoGastos.models;
 
 import java.time.LocalDate;
+import java.time.Month;
+import java.time.Year;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -46,6 +48,35 @@ public class DBFunctions {
 	    return gastos;
 	}
 	
+	public HashMap<String, Float> aggregatePorCategoriaEMes(MongoCollection<Document> collection, Month mes, int ano) {
+	    HashMap<String, Float> gastos = new HashMap<>();
+	    
+	    // Obtém o mês e o ano atuais
+	    String mesAtual = LocalDate.now().getMonth().toString();
+	    
+	    // Cria a pipeline de agregação com o filtro de mês e ano
+	    AggregateIterable<Document> result = collection.aggregate(Arrays.asList(
+	            // Etapa de match para filtrar pelo mês e ano
+	            new Document("$match", new Document("Mes", mes.toString())
+	                    .append("Ano", ano)),
+	            // Etapa de group para agrupar por categoria e somar os valores
+	            new Document("$group", new Document("_id", "$Categoria")
+	                    .append("valor", new Document("$sum", "$Valor"))),
+	            // Etapa de project para formatar a saída
+	            new Document("$project", new Document("_id", 0)
+	                    .append("categoria", "$_id")
+	                    .append("valor", 1))
+	    ));
+
+	    // Itera sobre o resultado e popula o HashMap
+	    for (Document doc : result) {
+	        gastos.put(
+	                doc.getString("categoria"), Float.parseFloat(doc.get("valor").toString())
+	        );
+	    }
+	    return gastos;
+	}
+	
 	public HashMap<String, Float> aggregatePorCategoria(MongoCollection<Document> collection) {
 	    HashMap<String, Float> gastos = new HashMap<>();
 	    
@@ -73,6 +104,8 @@ public class DBFunctions {
 	    return gastos;
 	}
 	
+	
+	
     public ArrayList<GastoGeral> getDocumentsByMonth(MongoCollection<Document> collection) {
         // Lista para armazenar os resultados
         ArrayList<GastoGeral> gastos = new ArrayList<>();
@@ -85,6 +118,8 @@ public class DBFunctions {
                                 .append("Valor", 1)
                                 .append("Data", 1)
                                 .append("Categoria", 1)
+                                .append("ParcelaAtual", 1)
+                                .append("TotalParcelas", 1)
                                 .append("_id", 0); // Exclui o campo _id
         
         // Usar find() com o filtro e a projeção
@@ -99,8 +134,54 @@ public class DBFunctions {
                     x.getString("Nome"),
                     x.getDouble("Valor").floatValue(), // Alteração para Double
                     x.getString("Data"),
-                    x.getString("Categoria")
+                    x.getString("Categoria"),
+                    x.getInteger("ParcelaAtual"),
+                    x.getInteger("TotalParcelas")
                 );
+                gastos.add(gasto);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            cursor.close(); // Fechar o cursor após a iteração
+        }
+
+        return gastos; // Retorna a lista de GastoGeral
+    }
+    
+    public ArrayList<GastoGeral> getDocumentsByMonth(MongoCollection<Document> collection, Month month, int ano) {
+        // Lista para armazenar os resultados
+        ArrayList<GastoGeral> gastos = new ArrayList<>();
+
+        // Cria um filtro para o mês especificado
+        Document filtro = new Document("Mes", month.toString())
+        		.append("Ano", ano);
+        
+        // Define a projeção para incluir apenas os campos desejados
+        Document projecao = new Document("Nome", 1)
+                .append("Valor", 1)
+                .append("Data", 1)
+                .append("Categoria", 1)
+                .append("ParcelaAtual", 1)
+                .append("TotalParcelas", 1)
+                .append("_id", 0); // Exclui o campo _id
+        
+        // Usar find() com o filtro e a projeção
+        MongoCursor<Document> cursor = collection.find(filtro).projection(projecao).iterator();
+
+        try {
+            // Itera sobre os documentos e cria instâncias de GastoGeral
+            while (cursor.hasNext()) {
+                Document x = cursor.next();
+                System.out.println("Documento encontrado: " + x.toJson());
+                GastoGeral gasto = new GastoGeral(
+                        x.getString("Nome"),
+                        x.getDouble("Valor").floatValue(), // Alteração para Double
+                        x.getString("Data"),
+                        x.getString("Categoria"),
+                        x.getInteger("ParcelaAtual"),
+                        x.getInteger("TotalParcelas")
+                    );
                 gastos.add(gasto);
             }
         } catch (Exception e) {

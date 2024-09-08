@@ -5,6 +5,8 @@ import static com.mongodb.client.model.Filters.eq;
 import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 
+import java.time.Month;
+import java.time.Year;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -70,7 +72,9 @@ public class DatabaseConnection {
 				.append("Recorrente", despesa.isRecorrente())
 				.append("Data", despesa.getData())
 				.append("Mes", despesa.getMes())
-				.append("Ano", despesa.getAno());
+				.append("Ano", despesa.getAno())
+				.append("ParcelaAtual", despesa.getParcelaAtual())
+				.append("TotalParcelas", despesa.getQtdParcelas());
 		
 	}
 	
@@ -123,11 +127,35 @@ public class DatabaseConnection {
 		return listFinal;
 	}
 	
-	public ArrayList<GastoGeral> getAllGastos(){
+	public ArrayList<GastoVisualizacao> getGastosByCategoria(Month mes, int ano){
+		MongoCollection<Document> collection;
+		ArrayList<GastoVisualizacao> listFinal = new ArrayList<>();
 		collection = this.database.getCollection("Gastos");
-		ArrayList<GastoGeral> todosGastos = new DBFunctions().getDocumentsByMonth(collection);
+		HashMap<String, Float> gastosGerais = new DBFunctions().aggregatePorCategoriaEMes(collection, mes, ano);
 		collection = this.database.getCollection("Recorrente");
-		ArrayList<GastoGeral> recorrentes = new DBFunctions().getDocumentsByMonth(collection);
+		HashMap<String, Float> gastosRecorrentes = new DBFunctions().aggregatePorCategoria(collection);
+		
+		for(Map.Entry<String, Float> entry: gastosGerais.entrySet()){
+			if (gastosRecorrentes.containsKey(entry.getKey())){
+				listFinal.add(new GastoVisualizacao(
+						entry.getKey(), entry.getValue() + gastosRecorrentes.get(entry.getKey())
+						));
+			} else {
+				listFinal.add(new GastoVisualizacao(
+						entry.getKey(), entry.getValue()
+						));
+			}
+			
+		}
+		
+		return listFinal;
+	}
+	
+	public ArrayList<GastoGeral> getAllGastos(Month month, int ano){
+		collection = this.database.getCollection("Gastos");
+		ArrayList<GastoGeral> todosGastos = new DBFunctions().getDocumentsByMonth(collection, month, ano);
+		collection = this.database.getCollection("Recorrente");
+		ArrayList<GastoGeral> recorrentes = new DBFunctions().getDocumentsByMonth(collection, month, ano);
 		todosGastos.addAll(recorrentes);
 		
 		return todosGastos;

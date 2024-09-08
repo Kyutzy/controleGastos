@@ -6,7 +6,10 @@ import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.Month;
+import java.time.Year;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
 import javafx.collections.FXCollections;
@@ -53,6 +56,8 @@ public class PrimaryController {
 	@FXML ProgressBar progresso;
 	
 	boolean parcelado = true;
+	Month mes = LocalDate.now().getMonth();
+	int ano = LocalDate.now().getYear();
 	
 	/*
 	 * Componentes da Tab de visualização
@@ -67,9 +72,12 @@ public class PrimaryController {
 	@FXML TableColumn<GastoGeral, Float> visualizacaoValor;
 	@FXML TableColumn<GastoGeral, String> visualizacaoData;
 	@FXML TableColumn<GastoGeral, String> visualizacaoCategoria;
+	@FXML TableColumn<GastoGeral, String> visualizacaoParcelamento;
 	
 	@FXML TextField total;
 	
+	@FXML ComboBox<Month> monthView;
+	@FXML ComboBox<Integer> yearView;
 	
 	
 	//@FXML TableColumn<>
@@ -81,6 +89,7 @@ public class PrimaryController {
 		total.setText(String.format("Total: %.2f", db.getValorGastos()));
 		inicializarTableCategorias();
 		inicializarTableTodosGastos();
+		inicializarComboBoxData();
 		dataGasto.setValue(LocalDate.now());
 		ArrayList<String> categorias = db.getAllCategorias();
 		setComboCategorias(categorias);
@@ -108,8 +117,9 @@ public class PrimaryController {
 	
 	@FXML
 	public void criarDepesaUmaVez() {
+		int parcela = 0;
 		if (spinnerParcelas.getValue() == 1) {
-			Despesa novaDespesa = this.criarDespesa(false, LocalDate.now().getMonth().toString(), LocalDate.now().getYear());
+			Despesa novaDespesa = this.criarDespesa(false, dataGasto.getValue().getMonth().toString(), dataGasto.getValue().getYear(), 1,1);
 			this.db.insertOneDespesa(novaDespesa);
 			inicializarTableCategorias();
 			nomeGasto.setText("");
@@ -119,13 +129,14 @@ public class PrimaryController {
 			finalizarLancamento();
 		} else {
 			for(int i=0; i<spinnerParcelas.getValue(); i++) {
-			int mesAtual = LocalDate.now().getMonth().getValue();
-			int anoAtual = LocalDate.now().getYear();
+			int mesAtual = dataGasto.getValue().getMonth().getValue();
+			int anoAtual = dataGasto.getValue().getYear();
 			int mesSomado = mesAtual + i;
 			if (mesSomado > 12) {
 				anoAtual++;
 			}
-			Despesa novaParcelada = this.criarDespesa(false, LocalDate.now().getMonth().plus(i).toString(), anoAtual);
+			parcela++;
+			Despesa novaParcelada = this.criarDespesa(false, LocalDate.now().getMonth().plus(i).toString(), anoAtual, parcela, spinnerParcelas.getValue());
 			this.db.insertOneDespesa(novaParcelada);
 			}
 			finalizarLancamento();
@@ -152,7 +163,7 @@ public class PrimaryController {
 	
 	@FXML
 	public void criarDespesaRecorrente() {
-		Despesa novaDespesa = this.criarDespesa(true, LocalDate.now().getMonth().toString(), LocalDate.now().getYear());
+		Despesa novaDespesa = this.criarDespesa(true, LocalDate.now().getMonth().toString(), LocalDate.now().getYear(),1,1);
 		this.db.insertOneRecorrente(novaDespesa);
 		inicializarTableCategorias();
 		inicializarTableTodosGastos();
@@ -160,14 +171,14 @@ public class PrimaryController {
 		
 	}
 	
-	public Despesa criarDespesa(boolean recorrencia, String mes, int ano) {
+	public Despesa criarDespesa(boolean recorrencia, String mes, int ano, int parcelaAtual, int totalParcelas) {
 		String nomeDespesa = nomeGasto.getText();
 		float valorDespesa = Float.parseFloat(valorGasto.getText().replace(',', '.'));
 		String dataDespesa = dataGasto.getValue().toString();
 		String categoria = categoriaGasto.getValue();
 	
 		
-		return new Despesa(nomeDespesa, valorDespesa, parcelado, categoria, recorrencia, dataDespesa, mes, ano);
+		return new Despesa(nomeDespesa, valorDespesa, parcelado, categoria, recorrencia, dataDespesa, mes, ano, parcelaAtual, totalParcelas);
 	}
 	
 	@FXML
@@ -193,7 +204,7 @@ public class PrimaryController {
 		visualizacaoPorCategoriaValor.setCellValueFactory(
 				new PropertyValueFactory<>("valorGasto")
 				);
-		ObservableList<GastoVisualizacao> visualizacao = FXCollections.observableArrayList(db.getGastosByCategoria());
+		ObservableList<GastoVisualizacao> visualizacao = FXCollections.observableArrayList(db.getGastosByCategoria(this.mes, this.ano));
 		visualizacaoPorCategoria.getItems().setAll(visualizacao);
 	}
 	
@@ -210,9 +221,36 @@ public class PrimaryController {
 		visualizacaoCategoria.setCellValueFactory(
 				new PropertyValueFactory<>("categoria")
 				);
+		visualizacaoParcelamento.setCellValueFactory(
+				new PropertyValueFactory<>("parcelas")
+				);
 		
-		ObservableList<GastoGeral> visualizacao = FXCollections.observableArrayList(db.getAllGastos());
+		
+		ObservableList<GastoGeral> visualizacao = FXCollections.observableArrayList(db.getAllGastos(this.mes, this.ano));
 		visualizacaoGeral.getItems().setAll(visualizacao);
+		
+	}
+	
+	private void inicializarComboBoxData() {
+		ArrayList<Integer> anos = new ArrayList<Integer>();
+		List<Month> meses = Arrays.asList(Month.values()); 
+		ObservableList<Month> months = FXCollections.observableArrayList(meses);
+		monthView.getItems().setAll(months);
+		monthView.getSelectionModel().select(LocalDate.now().getMonth());
+		for(int i = 2000; i<= 2099; i++) {
+			anos.add(i);
+		}
+		ObservableList<Integer> anos_obs = FXCollections.observableArrayList(anos);
+		yearView.getItems().setAll(anos_obs);
+		yearView.getSelectionModel().select(Integer.valueOf(this.ano));
+	}
+	@FXML
+	public void atualizarListaComMes() {
+		this.mes = monthView.getSelectionModel().getSelectedItem();
+		this.ano = yearView.getSelectionModel().getSelectedItem();
+		inicializarTableTodosGastos();
+		inicializarTableCategorias();
+		
 		
 	}
 }

@@ -12,7 +12,14 @@ public class Despesa {
 	String data;
 	String mes;
 	int ano;
-	
+	int parcelaAtual;
+	int qtdParcelas;
+	public String getNome() {
+		return nome;
+	}
+	public void setNome(String nome) {
+		this.nome = nome;
+	}
 	public float getValor() {
 		return valor;
 	}
@@ -37,19 +44,12 @@ public class Despesa {
 	public void setRecorrente(boolean recorrente) {
 		this.recorrente = recorrente;
 	}
-	public String getNome() {
-		return nome;
-	}
-	public void setNome(String nome) {
-		this.nome = nome;
-	}
 	public String getData() {
 		return data;
 	}
 	public void setData(String data) {
 		this.data = data;
 	}
-	
 	public String getMes() {
 		return mes;
 	}
@@ -62,8 +62,20 @@ public class Despesa {
 	public void setAno(int ano) {
 		this.ano = ano;
 	}
+	public int getParcelaAtual() {
+		return parcelaAtual;
+	}
+	public void setParcelaAtual(int parcelaAtual) {
+		this.parcelaAtual = parcelaAtual;
+	}
+	public int getQtdParcelas() {
+		return qtdParcelas;
+	}
+	public void setQtdParcelas(int qtdParcelas) {
+		this.qtdParcelas = qtdParcelas;
+	}
 	public Despesa(String nome, float valor, boolean parcelado, String categoria, boolean recorrente, String data,
-			String mes, int ano) {
+			String mes, int ano, int parcelaAtual, int qtdParcelas) {
 		super();
 		this.nome = nome;
 		this.valor = valor;
@@ -73,7 +85,12 @@ public class Despesa {
 		this.data = data;
 		this.mes = mes;
 		this.ano = ano;
+		this.parcelaAtual = parcelaAtual;
+		this.qtdParcelas = qtdParcelas;
 	}
+	
+	
+
 
 	
 
